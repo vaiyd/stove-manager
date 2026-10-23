@@ -1,0 +1,21 @@
+{#- Display eco card (variable: display). The toggle saves on change. -#}
+<section id="settings-display" class="card bg-base-100 shadow-sm">
+  <div class="card-body gap-3">
+    <h2 class="card-title text-base">{{ t("settings.display.title") }}</h2>
+    {%- if display.state == "absent" %}
+    <p class="text-sm opacity-70">{{ t("common.not_available") }}</p>
+    {%- elif display.state == "error" %}
+    <p class="text-sm text-warning">{{ t("common.unavailable") }}</p>
+    {%- else %}
+    <form hx-post="/actions/settings/display-eco" hx-trigger="change" hx-target="#settings-display" hx-swap="outerHTML" hx-disabled-elt="find input">
+      <label class="flex items-center justify-between gap-3">
+        <span>{{ t("settings.display.toggle") }}</span>
+        <input type="checkbox" name="enabled" class="toggle toggle-primary"{{ ' checked' if display.enabled }}{{ '' if display.writable else ' disabled' }}>
+      </label>
+      {%- if not display.writable %}
+      <p class="mt-2 text-xs text-warning">{{ t("common.unverified") }}</p>
+      {%- endif %}
+    </form>
+    {%- endif %}
+  </div>
+</section>

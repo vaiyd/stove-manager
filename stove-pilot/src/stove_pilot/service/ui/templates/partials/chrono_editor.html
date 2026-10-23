@@ -1,0 +1,65 @@
+{#- The swappable editor root (variables: view, texts). Reloaded as a whole by chrono-editor.js and by a save. -#}
+{% from "macros/icons.html" import icon -%}
+<section id="chrono-editor" class="space-y-4" data-etag="{{ view.etag if view else '' }}" data-fingerprint-url="{{ url_for('chrono.fingerprint_partial') }}" data-reload-url="{{ url_for('chrono.editor_partial') }}" data-texts='{{ texts | tojson }}'>
+{%- if view is none %}
+  <div role="alert" class="alert alert-warning"><span>{{ t("chrono.unavailable") }}</span></div>
+{%- else %}
+  {%- set lock = "" if view.writable else " disabled" %}
+  <div id="chrono-suspended" role="alert" class="alert alert-warning"{{ "" if view.suspended else " hidden" }}><span>{{ t("chrono.suspended_banner") }}</span></div>
+  <div id="chrono-changed" role="alert" class="alert alert-warning" hidden>
+    <span>{{ t("chrono.changed_banner") }}</span>
+    <button type="button" class="btn btn-sm" hx-get="{{ url_for('chrono.editor_partial') }}" hx-target="#chrono-editor" hx-swap="outerHTML" hx-disabled-elt="this">{{ t("chrono.reload") }}</button>
+  </div>
+
+  {%- include "partials/chrono_preview.html" %}
+
+  <form id="chrono-form" class="space-y-4" hx-post="/actions/chrono/save" hx-target="#chrono-feedback" hx-swap="innerHTML" hx-disabled-elt="#chrono-save">
+    <input type="hidden" name="etag" value="{{ view.etag }}">
+    {%- for b in view.blocks %}
+    <div class="card bg-base-100 shadow-sm" data-block="{{ b.kind }}">
+      <div class="card-body gap-3">
+        <div class="flex items-start justify-between gap-2">
+          <h2 class="card-title min-w-0">{{ b.title }}</h2>
+          <div class="flex shrink-0 items-center gap-2">
+            <label class="flex cursor-pointer items-center gap-2 text-sm">
+              <span>{{ t("chrono.block_toggle") }}</span>
+              <input type="checkbox" class="toggle toggle-primary" name="toggle.{{ b.kind }}" value="true" data-block-toggle="{{ b.kind }}" hx-post="/actions/chrono/blocks/{{ b.kind }}/state" hx-trigger="change" hx-swap="none"{{ " checked" if b.enabled }}{{ " disabled" if (view.suspended or not view.writable) }}>
+            </label>
+            <button type="button" class="btn btn-ghost btn-square min-h-8 min-w-8" data-action="fold" data-label-collapse="{{ t('chrono.collapse') }} {{ b.title }}" data-label-expand="{{ t('chrono.expand') }} {{ b.title }}" aria-expanded="true" aria-controls="chrono-block-{{ b.kind }}" aria-label="{{ t('chrono.collapse') }} {{ b.title }}" title="{{ t('chrono.collapse') }} {{ b.title }}">
+              <span data-fold-icon="up">{{ icon("chevron-up", "size-5") }}</span>
+              <span data-fold-icon="down" hidden>{{ icon("chevron-down", "size-5") }}</span>
+            </button>
+          </div>
+        </div>
+        <input type="hidden" name="{{ b.kind }}.enabled" value="{{ 'true' if b.enabled else 'false' }}">
+        {#- Body stays in the form when folded: hidden, never removed or disabled. -#}
+        <div id="chrono-block-{{ b.kind }}" data-block-body class="space-y-3">
+          {%- if not view.writable %}
+          <p class="text-xs text-warning">{{ t("common.unverified") }}</p>
+          {%- endif %}
+          {%- for p in b.programs %}
+          {%- include "partials/chrono_program.html" %}
+          {%- endfor %}
+        </div>
+      </div>
+    </div>
+    {%- endfor %}
+
+    <div id="chrono-warnings" class="space-y-2" aria-live="polite">
+      <ul id="chrono-api-warnings" class="space-y-2">
+        {%- for text in view.warnings %}
+        <li role="alert" class="alert alert-warning alert-soft"><span>{{ text }}</span></li>
+        {%- endfor %}
+      </ul>
+      <ul id="chrono-client-warnings" class="space-y-2" hidden></ul>
+    </div>
+    <p class="text-xs opacity-70">{{ t("chrono.overlap_info") }}</p>
+
+    <button type="submit" id="chrono-save" class="btn btn-primary btn-block"{{ lock }}>{{ t("chrono.save") }}</button>
+    {%- if not view.writable %}
+    <p class="text-center text-xs text-warning">{{ t("common.unverified") }}</p>
+    {%- endif %}
+  </form>
+  <div id="chrono-feedback" class="space-y-2" aria-live="polite"></div>
+{%- endif %}
+</section>

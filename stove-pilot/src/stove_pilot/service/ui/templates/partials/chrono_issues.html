@@ -1,0 +1,26 @@
+{#- Save feedback swapped into #chrono-feedback (variables: issues, conflict). -#}
+{%- if issues %}
+<div role="alert" class="alert alert-error alert-soft" data-chrono-issues>
+  <div>
+    <div class="font-semibold">{{ t("chrono.issues_title") }}</div>
+    <ul class="list-inside list-disc text-sm">
+      {%- for issue in issues %}
+      <li>{{ issue }}</li>
+      {%- endfor %}
+    </ul>
+  </div>
+</div>
+{%- endif %}
+{%- if conflict %}
+<dialog id="chrono-conflict" class="modal modal-bottom sm:modal-middle">
+  <div class="modal-box">
+    <h3 class="text-lg font-bold">{{ t("chrono.conflict_title") }}</h3>
+    <p class="py-3">{{ t("chrono.conflict_text") }}</p>
+    <div class="modal-action">
+      <button type="button" class="btn" onclick="this.closest('dialog').close()">{{ t("common.cancel") }}</button>
+      <button type="button" class="btn btn-primary" hx-get="/partials/chrono/editor" hx-target="#chrono-editor" hx-swap="outerHTML" hx-disabled-elt="this">{{ t("chrono.reload") }}</button>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button aria-label="{{ t('common.close') }}">{{ t("common.close") }}</button></form>
+</dialog>
+{%- endif %}

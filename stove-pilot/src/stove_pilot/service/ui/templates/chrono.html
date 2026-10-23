@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ t("nav.chrono") }}{% endblock %}
+{% block head_extra %}
+  <script src="{{ url_for('static', filename='js/chrono-logic.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/chrono-preview.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/chrono-editor.js') }}" defer></script>
+{% endblock %}
+{% block main_class %}mx-auto w-full max-w-3xl space-y-4 p-4 pb-28 lg:pb-6{% endblock %}
+{% block content %}
+  {% include "partials/chrono_editor.html" %}
+{% endblock %}

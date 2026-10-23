@@ -1,0 +1,73 @@
+{#-
+  Shared ambient plot for the dashboard and the history page. Variable: chart.
+  No script here. static/js/chart-hover.js reads the contract below.
+
+  [data-chart-plot] attributes:
+  data-points: JSON array of at most 300 samples. Above that, indexes are spread
+  evenly and the first sample after each outage is kept. Each item is
+  {"t","x","y","ambient","setpoint","state","label"} plus "gap": true on the
+  first sample after an outage (so a tooltip does not interpolate across it).
+  t is epoch seconds. x and y are percentages of the plot (y from the top, 0..100).
+  ambient and setpoint are a number or null. state is the French state label.
+  label is the sample's local time, "HH:MM" when it falls on the same local
+  calendar day as the range end, otherwise "dd/mm HH:MM" (server side, so the
+  browser timezone does not matter).
+  data-range-start and data-range-end are the axis ends, epoch seconds.
+  data-texts is {"ambient","setpoint","state"}: the French legend words.
+  Grid lines and axis labels are decorative. Y labels use the same percentage
+  as the horizontal grid lines so the text centers on the line.
+-#}
+{%- if not chart.empty %}
+{%- if chart.has_setpoint %}
+<div class="mb-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs opacity-70">
+  <span class="inline-flex items-center gap-1"><svg viewBox="0 0 24 8" class="h-2 w-6 shrink-0 text-primary" aria-hidden="true"><line x1="1" y1="4" x2="23" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>{{ t("history.legend.ambient") }}</span>
+  <span class="inline-flex items-center gap-1"><svg viewBox="0 0 24 8" class="h-2 w-6 shrink-0 text-secondary" aria-hidden="true"><line x1="1" y1="4" x2="23" y2="4" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3" stroke-linecap="butt"/></svg>{{ t("history.legend.setpoint") }}</span>
+</div>
+{%- endif %}
+<div class="grid grid-cols-[auto_1fr] gap-x-1">
+  <div class="relative h-48 overflow-visible pr-1 text-right text-xs leading-none tabular-nums opacity-70" aria-hidden="true">
+    <span class="whitespace-nowrap" style="visibility:hidden">{{ chart.y_track }}</span>
+    {%- for label in chart.y_labels %}
+    <span class="absolute right-0 -translate-y-1/2 whitespace-nowrap" style="top: {{ label.percent }}%">{{ label.text }}</span>
+    {%- endfor %}
+  </div>
+  <div class="relative h-48 min-w-0" data-chart-plot tabindex="0" role="group" aria-label="{{ t('history.chart_hint') }}" data-points="{{ chart.points_json }}" data-texts="{{ chart.texts_json }}" data-range-start="{{ chart.range_start }}" data-range-end="{{ chart.range_end }}">
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="block h-full w-full overflow-visible" role="img" aria-label="{{ chart.aria_label }}">
+      <g class="text-base-content" aria-hidden="true">
+        {%- for label in chart.y_labels %}
+        <line x1="0" x2="100" y1="{{ label.percent }}" y2="{{ label.percent }}" stroke="currentColor" stroke-opacity="0.2" stroke-width="1" vector-effect="non-scaling-stroke"/>
+        {%- endfor %}
+        {%- for x in chart.x_grid %}
+        <line y1="0" y2="100" x1="{{ x }}" x2="{{ x }}" stroke="currentColor" stroke-opacity="0.12" stroke-width="1" vector-effect="non-scaling-stroke"/>
+        {%- endfor %}
+      </g>
+      <g class="text-secondary">
+        {%- for segment in chart.setpoint_segments %}
+        <polyline fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="butt" stroke-dasharray="4 3" vector-effect="non-scaling-stroke" points="{{ segment }}"/>
+        {%- endfor %}
+        {%- for dot in chart.setpoint_dots %}
+        <polyline fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" vector-effect="non-scaling-stroke" points="{{ dot }} {{ dot }}"/>
+        {%- endfor %}
+      </g>
+      <g class="text-primary">
+        {%- for segment in chart.segments %}
+        <polyline fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" points="{{ segment }}"/>
+        {%- endfor %}
+        {%- for dot in chart.dots %}
+        <polyline fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" vector-effect="non-scaling-stroke" points="{{ dot }} {{ dot }}"/>
+        {%- endfor %}
+      </g>
+    </svg>
+  </div>
+  <div class="relative col-start-2 row-start-2 mt-1 h-4 text-xs leading-none tabular-nums opacity-70" aria-hidden="true">
+    {%- for label in chart.x_labels %}
+    <span class="absolute top-0 whitespace-nowrap{% if label.align == 'start' %} left-0{% elif label.align == 'end' %} right-0{% else %} -translate-x-1/2{% endif %}"{% if label.align == 'center' %} style="left: {{ label.percent }}%"{% endif %}>{{ label.text }}</span>
+    {%- endfor %}
+  </div>
+</div>
+<div class="flex flex-wrap justify-between gap-x-4 text-sm">
+  <span>{{ t("history.low") }} {{ chart.low_text }} C</span>
+  <span>{{ t("history.high") }} {{ chart.high_text }} C</span>
+  <span>{{ t("history.last") }} {{ chart.last_text }} C</span>
+</div>
+{%- endif %}

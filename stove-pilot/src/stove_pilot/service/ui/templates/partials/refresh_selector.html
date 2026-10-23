@@ -1,0 +1,18 @@
+{% from "macros/icons.html" import icon -%}
+<div class="flex items-center gap-1" id="refresh-selector">
+  <div class="dropdown dropdown-end">
+    <div tabindex="0" role="button" class="btn btn-ghost btn-sm gap-1" aria-label="{{ t('refresh.label') }}">
+      {{ icon("clock", "size-4") }}
+      <span data-refresh-label>{{ t("refresh.option." ~ refresh_default) }}</span>
+    </div>
+    <ul tabindex="0" class="dropdown-content menu z-40 w-40 rounded-box bg-base-100 p-2 shadow-md">
+      {% for seconds in refresh_choices %}
+      <li><button type="button" data-refresh-set="{{ seconds }}">{{ t("refresh.option." ~ seconds) }}</button></li>
+      {% endfor %}
+    </ul>
+  </div>
+  <button type="button" class="btn btn-ghost btn-sm" data-refresh-now>
+    {{ icon("refresh", "size-4") }}
+    <span class="hidden sm:inline">{{ t("refresh.now") }}</span>
+  </button>
+</div>

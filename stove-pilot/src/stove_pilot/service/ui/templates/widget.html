@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{#- Embeddable read-only page: only the glance card, refreshed on its own fixed interval. -#}
+{% block html_attrs %}{% if theme %} data-theme="{{ theme }}"{% endif %}{% endblock %}
+{% block title %}{{ t("widget.title") }}{% endblock %}
+{% block pwa %}{% endblock %}
+{% block theme_script %}{% endblock %}
+{% block sw_register %}{% endblock %}
+{% block body_class %}bg-transparent p-1{% endblock %}
+{% block body_attrs %}data-refresh-default="{{ refresh_s }}" data-refresh-fixed="1"{% endblock %}
+{% block main_class %}w-full{% endblock %}
+{% block nav %}{% endblock %}
+{% block content %}{% include "partials/glance.html" %}{% endblock %}
+{% block dock %}{% endblock %}
+{% block toasts %}{% endblock %}

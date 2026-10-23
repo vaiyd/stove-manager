@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{ t("offline.title") }} - {{ t("app.title") }}</title>
+  <meta name="theme-color" content="#9a5b2c">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon-32.png') }}">
+</head>
+<body class="min-h-screen bg-base-200 flex items-center justify-center p-4">
+  <main class="card w-full max-w-sm bg-base-100 shadow-sm">
+    <div class="card-body items-center text-center">
+      <h1 class="card-title">{{ t("offline.title") }}</h1>
+      <p>{{ t("offline.body") }}</p>
+      <div class="card-actions mt-2">
+        <a href="/" class="btn btn-primary">{{ t("offline.retry") }}</a>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

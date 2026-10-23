@@ -1,0 +1,8 @@
+<div hx-swap-oob="beforeend:#toasts">
+{%- for toast in toasts %}
+  <div role="alert" class="alert {{ toast.css_class }} shadow-md" data-toast>
+    <span>{{ toast.text }}</span>
+    <button type="button" class="btn btn-ghost btn-xs" aria-label="{{ t('common.close') }}" onclick="this.closest('[data-toast]').remove()">x</button>
+  </div>
+{%- endfor %}
+</div>

@@ -1,0 +1,26 @@
+{#- Suspend dialog, included by controls.html (variables: controls). -#}
+{% set start_allowed = controls.status.capabilities.start -%}
+<dialog id="suspend-modal" class="modal modal-bottom sm:modal-middle">
+  <div class="modal-box">
+    <h3 class="text-lg font-bold">{{ t("suspension.modal_title") }}</h3>
+    <form class="space-y-4 py-3" hx-post="/actions/suspend" hx-target="#controls" hx-swap="outerHTML">
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">{{ t("suspension.until_label") }}</legend>
+        <input type="datetime-local" name="until" class="input w-full">
+        <p class="text-xs opacity-70">{{ t("suspension.until_hint") }}</p>
+      </fieldset>
+      <label class="flex cursor-pointer items-start gap-3">
+        <input type="checkbox" name="thermostat_mode" class="checkbox mt-1"{{ ' checked' if (controls.status.state == 'OFF' and start_allowed) }}{{ '' if start_allowed else ' disabled' }}>
+        <span>{{ t("suspension.thermostat_label") }}</span>
+      </label>
+      {%- if not start_allowed %}
+      <p class="text-xs text-warning">{{ t("common.unverified") }}</p>
+      {%- endif %}
+      <div class="modal-action">
+        <button type="button" class="btn" onclick="this.closest('dialog').close()">{{ t("common.cancel") }}</button>
+        <button type="submit" class="btn btn-primary">{{ t("suspension.confirm") }}</button>
+      </div>
+    </form>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button aria-label="{{ t('common.close') }}">{{ t("common.close") }}</button></form>
+</dialog>

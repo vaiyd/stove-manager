@@ -1,0 +1,13 @@
+{#- 24 h ambient chart; same plot as history. Refreshed every 5 min and on a forced tick. -#}
+<section id="sparkline" class="card bg-base-100 shadow-sm" data-stale="{{ 'true' if sparkline_stale else 'false' }}" hx-get="/partials/sparkline" hx-trigger="every 300s [document.visibilityState==='visible'], refresh-tick[detail.forced] from:body" hx-swap="outerHTML">
+  <div class="card-body gap-2">
+    <h2 class="card-title text-base">{{ t("sparkline.title") }}</h2>
+    {%- if chart is none %}
+    <p class="text-sm text-warning">{{ t("common.unavailable") }}</p>
+    {%- elif chart.empty %}
+    <p class="text-sm opacity-70">{{ t("sparkline.empty") }}</p>
+    {%- else %}
+    {% include "partials/chart.html" %}
+    {%- endif %}
+  </div>
+</section>

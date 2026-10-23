@@ -1,0 +1,38 @@
+# Chrono layout mapped and write-back verified on 2026-10-21 via reset of each block.
+# Mapping confirmed by the user at the Task 4 checkpoint (2026-10-22).
+# Bytes that always read 1 are deliberately absent.
+
+[chrono]
+time_unit_min = 10
+unset_value = 144
+day_mask_bits = "mon=0,tue=1,wed=2,thu=3,fri=4,sat=5,sun=6"
+
+[[chrono.blocks]]
+kind = "day"
+enable = 0x50
+allowed_days = []            # no day mask: every day
+verified = true
+programs = [
+  { start = 0x51, stop = 0x52, power = 0x53, setpoint = 0x54 },
+  { start = 0x56, stop = 0x57, power = 0x58, setpoint = 0x59 },
+]
+
+[[chrono.blocks]]
+kind = "week"
+enable = 0x5B
+allowed_days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]   # the panel also lets Sat and Sun be selected (user, 2026-10-22)
+verified = true
+programs = [
+  { start = 0x5C, stop = 0x5D, days = 0x5E, power = 0x5F, setpoint = 0x60 },
+  { start = 0x62, stop = 0x63, days = 0x64, power = 0x65, setpoint = 0x66 },
+]
+
+[[chrono.blocks]]
+kind = "weekend"
+enable = 0x68
+allowed_days = ["fri", "sat", "sun"]
+verified = true
+programs = [
+  { start = 0x69, stop = 0x6A, days = 0x6B, power = 0x6C, setpoint = 0x6D },
+  { start = 0x6F, stop = 0x70, days = 0x71, power = 0x72, setpoint = 0x73 },
+]

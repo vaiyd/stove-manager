@@ -1,0 +1,22 @@
+{#- Timeline of the latest events (live region, refreshed on each tick). -#}
+<section id="events" class="card bg-base-100 shadow-sm" data-stale="{{ 'true' if events_stale else 'false' }}" hx-get="/partials/events" hx-trigger="refresh-tick from:body" hx-swap="outerHTML">
+  <div class="card-body gap-2">
+    <h2 class="card-title text-base">{{ t("events.title") }}</h2>
+    {%- if events is none %}
+    <p class="text-sm text-warning">{{ t("common.unavailable") }}</p>
+    {%- elif not events %}
+    <p class="text-sm opacity-70">{{ t("events.empty") }}</p>
+    {%- else %}
+    <ul class="timeline timeline-vertical timeline-compact timeline-snap-icon">
+      {%- for event in events %}
+      <li>
+        {%- if not loop.first %}<hr>{% endif %}
+        <div class="timeline-middle"><span class="block size-2 rounded-full bg-primary"></span></div>
+        <div class="timeline-end my-1 text-sm"><span class="mr-2 font-mono text-xs opacity-70">{{ event.when }}</span>{{ event.text }}</div>
+        {%- if not loop.last %}<hr>{% endif %}
+      </li>
+      {%- endfor %}
+    </ul>
+    {%- endif %}
+  </div>
+</section>

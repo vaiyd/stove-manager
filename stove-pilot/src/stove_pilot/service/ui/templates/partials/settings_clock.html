@@ -1,0 +1,30 @@
+{#- Stove clock card (variables: clock, clock_stale). The only live region of Reglages. -#}
+<section id="settings-clock" class="card bg-base-100 shadow-sm" data-live data-stale="{{ 'true' if clock_stale else 'false' }}" hx-get="/partials/settings/clock" hx-trigger="refresh-tick from:body" hx-swap="outerHTML">
+  <div class="card-body gap-2">
+    <h2 class="card-title text-base">{{ t("settings.clock.title") }}</h2>
+    {%- if clock is none or clock.state == "error" %}
+    <p class="text-sm text-warning">{{ t("common.unavailable") }}</p>
+    {%- elif clock.state == "absent" %}
+    <p class="text-sm opacity-70">{{ t("common.not_available") }}</p>
+    {%- else %}
+    <div class="flex items-end gap-3">
+      <span class="text-3xl font-bold leading-none">{{ clock.time_text }}</span>
+      <span class="text-sm{{ ' text-warning' if clock.drift_warn }}">{{ clock.drift_text }}</span>
+    </div>
+    <form hx-post="/actions/settings/clock-auto-sync" hx-trigger="change" hx-target="#settings-clock" hx-swap="outerHTML" hx-disabled-elt="find input">
+      <label class="flex items-center justify-between gap-3">
+        <span>{{ t("settings.clock.auto_toggle") }}</span>
+        <input type="checkbox" name="enabled" class="toggle toggle-primary"{{ ' checked' if clock.auto_sync }}{{ '' if clock.auto_sync_writable else ' disabled' }}>
+      </label>
+      {%- if not clock.auto_sync_writable %}
+      <p class="mt-2 text-xs text-warning">{{ t("common.not_available") }}</p>
+      {%- endif %}
+    </form>
+    <p class="text-sm opacity-70">{{ clock.auto_sync_text }}</p>
+    <p class="text-sm opacity-70">{{ t("settings.clock.last_sync", when=clock.last_sync_text) }}</p>
+    <div class="card-actions">
+      <button type="button" class="btn btn-sm" hx-post="/actions/settings/clock-sync" hx-target="#settings-clock" hx-swap="outerHTML" hx-disabled-elt="this">{{ t("settings.clock.sync") }}</button>
+    </div>
+    {%- endif %}
+  </div>
+</section>

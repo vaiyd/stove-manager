@@ -1,0 +1,22 @@
+{#- Display-alert catalog. Not filtered by the range tabs; refreshed with the events card. -#}
+<section class="card bg-base-100 shadow-sm" aria-labelledby="history-alerts-title">
+  <div class="card-body gap-2">
+    <h2 id="history-alerts-title" class="card-title text-base">{{ t("history.alerts_title") }}</h2>
+    <p class="text-sm opacity-70">{{ t("history.alerts_caption") }}</p>
+    {%- if not history.alerts %}
+    <p class="text-sm opacity-70">{{ t("history.alerts_empty") }}</p>
+    {%- else %}
+    <ul class="space-y-2">
+      {%- for alert in history.alerts %}
+      <li class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+        <span class="font-medium">{{ alert.title }}</span>
+        <span class="badge badge-sm {{ alert.severity_class }}">{{ alert.severity_label }}</span>
+        <span>{{ alert.occurrences_text }}</span>
+        <span class="font-mono text-xs opacity-70">{{ alert.last_seen }}</span>
+        <span class="badge badge-sm {{ alert.state_class }}">{{ alert.state_label }}</span>
+      </li>
+      {%- endfor %}
+    </ul>
+    {%- endif %}
+  </div>
+</section>

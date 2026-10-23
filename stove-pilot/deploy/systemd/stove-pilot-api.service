@@ -1,0 +1,40 @@
+# Stove Pilot API (Linux without Docker). See README, section "Deployment: systemd".
+# Placeholders to adapt:
+#   User/Group                  service account (for example: useradd --system stove-pilot)
+#   /opt/stove-pilot/venv       virtualenv where the package was installed (pip install .)
+#   /etc/stove-pilot/stove-pilot.env   settings file, mode 0600, owned by the service account
+#   /var/lib/stove-pilot        data directory (created by StateDirectory, holds the SQLite file)
+[Unit]
+Description=Stove Pilot API
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=stove-pilot
+Group=stove-pilot
+EnvironmentFile=/etc/stove-pilot/stove-pilot.env
+Environment=STOVE_PILOT_DB_PATH=/var/lib/stove-pilot/stove-pilot.sqlite
+WorkingDirectory=/var/lib/stove-pilot
+ExecStart=/opt/stove-pilot/venv/bin/stove-pilot-api
+Restart=always
+RestartSec=5
+TimeoutStopSec=20
+
+StateDirectory=stove-pilot
+StateDirectoryMode=0750
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/stove-pilot
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

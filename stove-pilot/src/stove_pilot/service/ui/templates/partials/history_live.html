@@ -1,0 +1,76 @@
+{#- Chart and timeline of one range; refreshed at most once a minute (see history.html). -#}
+{% from "macros/icons.html" import icon -%}
+<div class="space-y-4" data-stale="{{ 'true' if history_stale else 'false' }}">
+{%- if history is none %}
+  <div role="alert" class="alert alert-warning"><span>{{ t("common.unavailable") }}</span></div>
+{%- else %}
+  <section class="card bg-base-100 shadow-sm">
+    <div class="card-body gap-2">
+      <h2 class="card-title text-base">{{ t("history.chart_title") }}</h2>
+      {%- if history.chart.empty %}
+      <p class="text-sm opacity-70">{{ t("history.chart_empty") }}</p>
+      {%- else %}
+      {% with chart=history.chart %}{% include "partials/chart.html" %}{% endwith %}
+      {%- endif %}
+    </div>
+  </section>
+  <section class="card bg-base-100 shadow-sm">
+    <div class="card-body gap-2">
+      <h2 class="card-title text-base">{{ t("history.timeline_title") }}</h2>
+      {%- if not history.timeline %}
+      <p class="text-sm opacity-70">{{ t("history.timeline_empty") }}</p>
+      {%- else %}
+      <ul class="timeline timeline-vertical timeline-compact">
+        {%- for entry in history.timeline %}
+        <li>
+          {%- if not loop.first %}<hr>{% endif %}
+          <div class="timeline-middle"><span class="block size-2 rounded-full bg-primary"></span></div>
+          <div class="timeline-end my-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+            <span class="font-mono text-xs opacity-70">{{ entry.when }}</span>
+            <span>{{ entry.text }}</span>
+            <span class="badge badge-sm {{ entry.source_class }}">{{ entry.source }}</span>
+          </div>
+          {%- if not loop.last %}<hr>{% endif %}
+        </li>
+        {%- endfor %}
+      </ul>
+      {%- endif %}
+      {%- if history.show_pager %}
+      <nav class="mt-2 flex justify-center" aria-label="{{ t('history.pager_label') }}">
+        <div class="join max-w-full">
+          {%- if history.page <= 1 %}
+          <button type="button" class="btn btn-sm btn-square join-item shrink-0" disabled aria-disabled="true" aria-label="{{ t('history.previous_aria') }}" title="{{ t('history.previous_title') }}">{{ icon("chevron-left", "size-4") }}</button>
+          {%- elif history.previous %}
+          <a class="btn btn-sm btn-square join-item shrink-0" href="{{ url_for('history.index', range=spec.key, before_at=history.previous.at, before_id=history.previous.id) }}" rel="prev" aria-label="{{ t('history.previous_aria') }}" title="{{ t('history.previous_title') }}">{{ icon("chevron-left", "size-4") }}</a>
+          {%- else %}
+          <a class="btn btn-sm btn-square join-item shrink-0" href="{{ url_for('history.index', range=spec.key) }}" rel="prev" aria-label="{{ t('history.previous_aria') }}" title="{{ t('history.previous_title') }}">{{ icon("chevron-left", "size-4") }}</a>
+          {%- endif %}
+          <span class="join-item btn btn-sm pointer-events-none cursor-default px-3 font-mono text-xs whitespace-nowrap tabular-nums" aria-current="page"><span class="sr-only">{{ t("history.page_word") }} </span>{{ t("history.page_status", page=history.page, pages=history.pages) }}</span>
+          {%- if history.older %}
+          <a class="btn btn-sm btn-square join-item shrink-0" href="{{ url_for('history.index', range=spec.key, before_at=history.older.at, before_id=history.older.id) }}" rel="next" aria-label="{{ t('history.next_aria') }}" title="{{ t('history.next_title') }}">{{ icon("chevron-right", "size-4") }}</a>
+          {%- else %}
+          <button type="button" class="btn btn-sm btn-square join-item shrink-0" disabled aria-disabled="true" aria-label="{{ t('history.next_aria') }}" title="{{ t('history.next_title') }}">{{ icon("chevron-right", "size-4") }}</button>
+          {%- endif %}
+        </div>
+      </nav>
+      {%- endif %}
+    </div>
+  </section>
+  {#- Alerts failed alone: this card is stale; the chart and the events above stay fresh. -#}
+  {%- if history.alerts_unavailable %}
+  <section class="card bg-base-100 shadow-sm" aria-labelledby="history-alerts-title" data-stale="true">
+    <div class="card-body gap-2">
+      <h2 id="history-alerts-title" class="card-title text-base">{{ t("history.alerts_title") }}</h2>
+      <p class="text-sm text-warning">{{ t("history.alerts_unavailable") }}</p>
+    </div>
+  </section>
+  {%- else %}
+  {% include "partials/history_alerts.html" %}
+  {%- endif %}
+  {%- if history.paged %}
+  <p class="text-center text-xs opacity-70">{{ t("common.updated_at", time=history.polled_time) }}</p>
+  {%- else %}
+  <p class="text-center text-xs opacity-70" data-polled-at="{{ history.polled_at }}">{{ t("common.updated_at", time=history.polled_time) }}</p>
+  {%- endif %}
+{%- endif %}
+</div>

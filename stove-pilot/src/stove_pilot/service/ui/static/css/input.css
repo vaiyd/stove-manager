@@ -1,0 +1,57 @@
+@import "tailwindcss";
+@source "../../templates";
+@source "../js";
+@source "../../viewmodels.py";
+@source "../../toasts.py";
+@source "../../history_view.py";
+@plugin "../../../../../../tools/daisyui.mjs" {
+  themes: caramellatte --default, coffee --prefersdark;
+}
+
+/* Chart scrub: vertical page scroll stays, horizontal drag moves the cursor. */
+[data-chart-plot] {
+  touch-action: pan-y;
+}
+
+/* Chrono weekly preview: faint grid lines every 3 h on the bars and hour ticks on the shared scale. */
+.chrono-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to right,
+    color-mix(in oklab, var(--color-base-content) 22%, transparent) 0 1px,
+    transparent 1px 12.5%
+  );
+}
+.chrono-ticks {
+  height: 0.5rem;
+  border-right: 1px solid color-mix(in oklab, var(--color-base-content) 40%, transparent);
+  background-origin: border-box;
+  background-repeat: no-repeat;
+  background-position: top, bottom;
+  background-size: 100% 100%, 100% 50%;
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      color-mix(in oklab, var(--color-base-content) 40%, transparent) 0 1px,
+      transparent 1px 12.5%
+    ),
+    repeating-linear-gradient(
+      to right,
+      color-mix(in oklab, var(--color-base-content) 40%, transparent) 0 1px,
+      transparent 1px calc(100% / 24)
+    );
+}
+
+/* Overlap of two or more programs, above the on-segments. Two error tones stay readable on both themes. */
+.chrono-hatch {
+  z-index: 1;
+  pointer-events: auto;
+  background-image: repeating-linear-gradient(
+    45deg,
+    color-mix(in oklab, var(--color-error) 78%, white) 0 4px,
+    color-mix(in oklab, var(--color-error) 55%, black) 4px 8px
+  );
+}

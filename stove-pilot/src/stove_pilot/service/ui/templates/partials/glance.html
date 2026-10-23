@@ -1,0 +1,85 @@
+{#- At-a-glance card, shared by the dashboard and /widget. Read only: no form, no button. -#}
+{% from "macros/icons.html" import icon -%}
+{% from "macros/safety_badge.html" import safety_mark -%}
+{% set stale = glance_stale or (glance is not none and glance.status.stale) -%}
+<div id="glance" class="card bg-base-100 shadow-sm" data-live data-stale="{{ 'true' if stale else 'false' }}" hx-get="{{ partial_url }}" hx-trigger="refresh-tick from:body" hx-swap="outerHTML">
+{%- if glance is none %}
+  <div class="card-body"><p class="text-warning">{{ t("common.unavailable") }}</p></div>
+{%- else %}
+  {%- set s = glance.status %}
+  {%- if compact %}
+  <div class="card-body flex-row flex-wrap items-center gap-x-3 gap-y-1 p-3">
+    <span class="text-2xl font-bold leading-none">{{ s.ambient_text }} C</span>
+    <span class="text-sm opacity-70">{{ t("glance.target", value=s.setpoint_text) }}</span>
+    <span class="badge {{ s.badge_class }}">{{ s.state_label }}</span>
+    <span class="text-sm">{{ t("glance.power", level=s.power_level) }}</span>
+    {%- if glance.suspension %}
+    <span class="badge badge-outline badge-warning border-warning text-base-content">{{ t("vacation.button" if glance.suspension.vacation else "suspension.suspend") }}</span>
+    {%- endif %}
+    {%- if glance.alert %}
+    <span class="badge badge-soft {{ glance.alert.css_class | replace('alert-', 'badge-') }}">{{ glance.alert.title }}</span>
+    {%- endif %}
+    <span class="ml-auto text-xs opacity-70{{ ' text-warning' if stale }}" data-polled-at="{{ s.polled_at }}">{{ t("common.updated_at", time=s.polled_time) }}</span>
+  </div>
+  {%- else %}
+  <div class="card-body gap-3">
+    <div class="flex items-end justify-between gap-2">
+      <div>
+        <div class="text-5xl font-bold leading-none">{{ s.ambient_text }}<span class="text-2xl font-normal"> C</span></div>
+        <div class="mt-1 text-sm opacity-70">{{ t("glance.target", value=s.setpoint_text) }}</div>
+      </div>
+      <span class="badge badge-lg {{ s.badge_class }}">{{ s.state_label }}</span>
+    </div>
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+      <span class="inline-flex items-center">
+        <span class="kbd kbd-sm inline-flex items-center gap-1 font-mono" role="group" title="{{ t('glance.fumes') }}" aria-label="{{ t('glance.fumes') }} {{ s.fumes_text }} C">
+          {{ icon("smoke", "size-4") }}
+          <span aria-hidden="true">{{ s.fumes_text }} C</span>
+        </span>
+      </span>
+      <span class="inline-flex items-center">
+        <span class="kbd kbd-sm font-mono"><span class="sr-only">{{ t("glance.power_label") }} </span>{{ t("glance.power", level=s.power_level) }}</span>
+      </span>
+      {%- if s.stove_time %}
+      <span class="inline-flex items-center gap-1.5">
+        <span class="kbd kbd-sm inline-flex items-center gap-1 font-mono" role="group" title="{{ t('glance.clock') }}" aria-label="{{ t('glance.clock') }} {{ s.stove_time }}">
+          {{ icon("clock", "size-4") }}
+          <span aria-hidden="true">{{ s.stove_time }}</span>
+        </span>
+        {%- if s.drift_text %}
+        <span class="badge badge-warning badge-sm">{{ s.drift_text }}</span>
+        {%- endif %}
+      </span>
+      {%- endif %}
+      {%- if show_safety and glance.safety %}
+      <span class="inline-flex items-center">{{ safety_mark(glance.safety) }}</span>
+      {%- endif %}
+    </div>
+    {%- if glance.programming | selectattr('text') | list %}
+    <ul class="space-y-1 text-sm">
+      {%- for line in glance.programming if line.text %}
+      <li{% if line.dimmed %} class="opacity-50"{% endif %}>{{ line.label }} : {{ line.text }}</li>
+      {%- endfor %}
+    </ul>
+    {%- endif %}
+    {%- if glance.suspension %}
+    <div role="alert" class="alert {{ 'alert-warning' if glance.suspension.recovering else ('alert-info' if glance.suspension.vacation else 'alert-outline alert-warning text-base-content') }}"><span>{{ glance.suspension.banner }}</span></div>
+    {%- endif %}
+    {%- if glance.alert %}
+    <div role="alert" class="alert {{ glance.alert.css_class }}">
+      <div>
+        <div class="font-semibold">{{ glance.alert.title }}</div>
+        {%- if glance.alert.action %}
+        <div class="text-sm">{{ glance.alert.action }}</div>
+        {%- endif %}
+      </div>
+    </div>
+    {%- endif %}
+    {%- if s.stale %}
+    <div role="alert" class="alert alert-warning"><span>{{ t("alert.stale") }}</span></div>
+    {%- endif %}
+    <p class="text-xs opacity-70{{ ' text-warning' if stale }}"><span data-polled-at="{{ s.polled_at }}">{{ t("common.updated_at", time=s.polled_time) }}</span></p>
+  </div>
+  {%- endif %}
+{%- endif %}
+</div>

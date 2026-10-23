@@ -1,0 +1,45 @@
+{#- Securite card (variable: safety). Not a live region: only its own save swaps it. -#}
+<section id="settings-safety" class="card bg-base-100 shadow-sm">
+  <div class="card-body gap-3">
+    <h2 class="card-title text-base">{{ t("settings.safety.title") }}</h2>
+    {%- if safety.state == "absent" %}
+    <p class="text-sm opacity-70">{{ t("common.not_available") }}</p>
+    {%- elif safety.state == "error" %}
+    <p class="text-sm text-warning" role="alert">{{ t("common.unavailable") }}</p>
+    {%- else %}
+    <form class="space-y-3" hx-post="/actions/settings/safety" hx-target="#settings-safety" hx-swap="outerHTML" hx-disabled-elt="find button[type=submit]">
+      <label class="flex items-center justify-between gap-3">
+        <span class="font-medium">{{ t("settings.safety.toggle") }}</span>
+        <input type="checkbox" name="enabled" class="toggle toggle-primary"{{ ' checked' if safety.enabled }}>
+      </label>
+      <div class="fieldset">
+        <label class="label" for="safety-threshold">{{ t("settings.safety.threshold") }}</label>
+        <input id="safety-threshold" type="number" name="threshold_c" value="{{ safety.threshold_c }}" step="1" inputmode="numeric" min="{{ safety.threshold_min_c }}" max="{{ safety.threshold_max_c }}" class="input w-full">
+      </div>
+      <div class="fieldset">
+        <label class="label" for="safety-attempts">{{ t("settings.safety.attempts") }}</label>
+        <input id="safety-attempts" type="number" name="max_attempts" value="{{ safety.max_attempts }}" step="1" inputmode="numeric" min="{{ safety.max_attempts_min }}" max="{{ safety.max_attempts_max }}" class="input w-full">
+      </div>
+      <div class="fieldset">
+        <label class="label" for="safety-interval">{{ t("settings.safety.interval") }}</label>
+        <input id="safety-interval" type="number" name="retry_interval_min" value="{{ safety.retry_interval_min }}" step="1" inputmode="numeric" min="{{ safety.retry_interval_min_min }}" max="{{ safety.retry_interval_max_min }}" class="input w-full">
+      </div>
+      {%- if safety.error_text %}
+      <p class="text-sm text-error" role="alert">{{ safety.error_text }}</p>
+      {%- endif %}
+      <p class="text-sm font-medium{% if safety.status_tone == 'info' %} text-info{% elif safety.status_tone == 'warning' %} text-warning{% elif safety.status_tone == 'error' %} text-error{% endif %}" aria-live="polite">{{ safety.status_text }}</p>
+      {%- if safety.warning_text %}
+      <p class="text-sm">{{ safety.warning_text }}</p>
+      {%- endif %}
+      <p class="text-xs opacity-70">{{ safety.last_check_text }}</p>
+      <p class="text-xs opacity-70">{{ t("settings.safety.hint") }}</p>
+      <button type="submit" class="btn btn-primary btn-sm">{{ t("settings.save") }}</button>
+    </form>
+    {%- if safety.show_rearm %}
+    <div class="card-actions">
+      <button type="button" class="btn btn-sm" hx-post="/actions/settings/safety/rearm" hx-target="#settings-safety" hx-swap="outerHTML" hx-disabled-elt="this">{{ t("settings.safety.rearm") }}</button>
+    </div>
+    {%- endif %}
+    {%- endif %}
+  </div>
+</section>

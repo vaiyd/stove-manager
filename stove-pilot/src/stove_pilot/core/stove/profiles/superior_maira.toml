@@ -1,0 +1,124 @@
+[profile]
+name = "superior_maira"
+
+[registers.ambient_temp]
+memory = "ram"
+address = 0x01
+scale = 0.5
+verified = true
+
+[registers.fumes_temp]
+memory = "ram"
+address = 0x3E
+verified = true
+
+[registers.state]
+memory = "ram"
+address = 0x21
+verified = true
+
+[registers.setpoint]
+memory = "eeprom"
+address = 0x7D
+writable = true
+min = 7
+max = 30
+verified = true
+
+[registers.power_level]
+memory = "eeprom"
+address = 0x7F
+writable = true
+min = 1
+max = 5
+verified = true
+
+# Step 6a registers. Unknown items are omitted (see the "Not mapped" note below).
+
+[registers.energy_stop_offset]
+memory = "eeprom"
+address = 0x90
+writable = true
+min = 1
+max = 3
+off_value = 0
+verified = true    # degrees above the setpoint; 0 = OFF; panel +2 reads 2, +3 reads 3, OFF reads 0; write and read-back verified on the real stove 2026-10-22
+
+[registers.energy_start_offset]
+memory = "eeprom"
+address = 0x91
+writable = true
+min = 1
+max = 3
+verified = true    # absolute value of the offset: panel -2 reads 2, -3 reads 3; OFF encoding not observed, so no off_value; write and read-back verified on the real stove 2026-10-22 (2 -> 3 -> 2)
+
+[registers.display_eco]
+memory = "eeprom"
+address = 0x29
+writable = true
+min = 0
+max = 1
+verified = true    # DISPLAY ECO ("Display en attente"): 1 = ON, 0 = OFF; write and read-back verified on the real stove 2026-10-22 (1 -> 0 -> 1)
+
+[registers.display_idle_content]
+memory = "eeprom"
+address = 0x4C
+writable = true
+min = 0
+max = 1
+verified = false   # idle display content (UNITE DISPLAY): 0 = TEMP, 1 = HEURE; one toggle observed; other values unknown; not yet written live
+
+[counters.ignition_count]
+memory = "eeprom"
+address = 0xEE
+bytes = 2
+endian = "little"  # low byte 0xEE, high byte 0xEF; value 16760 reads as 6760 on the 4-digit panel (panel shows the value modulo 10000); read only
+
+# Not mapped (not found in the 256-byte RAM/EEPROM windows): total hours, partial hours, last 5 alarms (weak candidate EEPROM 0x83/0x84 = 9, not retained). Night mode does not exist on this stove.
+#
+# EEPROM 0x4C is the display idle content, NOT a chrono master switch (the plan's earlier candidate range 0x4C to 0x4F was wrong).
+# EEPROM 0xFA doubles as the clock-minute setting, so it changes on its own.
+
+[display]
+memory = "ram"
+start = 0xD8
+length = 24
+
+[states]
+0 = { state = "OFF", label = "Off" }
+1 = { state = "IGNITION", label = "Check" }
+2 = { state = "IGNITION", label = "Ignition phase 1" }
+3 = { state = "IGNITION", label = "Ignition phase 2" }
+4 = { state = "RUNNING", label = "Working" }
+6 = { state = "SHUTDOWN", label = "Final cleaning" }
+# 7 = STANDBY, decided by the user. It covers both the hot cooling phase after an ENERGY SAVING stop (panel shows REFROIDISSEMENT, fumes temperature falling) and the cold wait for restart (panel shows ENERGY OK / ENS). The code does not distinguish them.
+7 = { state = "STANDBY", label = "Standby (energy saving)" }
+# codes 5, 8+ not observed: they decode as UNKNOWN
+
+[commands.start]
+writes = [{ memory = "ram", address = 0x21, value = 0x01 }]
+verified = true    # 2026-10-21/22: ram 0x21 <- 1 starts the stove from OFF, verified live (states 1, 2, 3, 4)
+
+[commands.stop]
+writes = [{ memory = "ram", address = 0x21, value = 0x06 }]
+verified = true    # 2026-10-21: 7 -> 6 -> 0 in 3 min 50 s
+
+[clock.live]       # RAM, binary, read in every status batch
+memory = "ram"
+second = 0x7A
+weekday = 0x7B
+hour = 0x7C
+minute = 0x7D
+day = 0x7E
+month = 0x7F
+year = 0x80        # years since 2000
+
+[clock.set]        # EEPROM, BCD, written by sync_clock
+memory = "eeprom"
+weekday = 0xF8     # encoding from Step 6 (Wednesday read as 4, Thursday as 5)
+hour = 0xF9
+minute = 0xFA
+day = 0xFB
+month = 0xFC
+year = 0xFD
+verified = true    # BCD encoding verified live 2026-10-21 (RAM clock follows EEPROM immediately)

@@ -1,0 +1,26 @@
+{#- Read-only weekly preview (variable: view). The bars are filled client-side by chrono-preview.js. -#}
+<div class="card bg-base-100 shadow-sm">
+  <div class="card-body gap-2">
+    <h2 class="card-title">{{ t("chrono.preview_title") }}</h2>
+    <div id="chrono-preview" class="space-y-1.5" data-preview>
+      <div class="grid grid-cols-[3rem_1fr] gap-2" aria-hidden="true">
+        <span></span>
+        <div class="space-y-0.5">
+          <div class="grid grid-cols-8 text-[10px] leading-none text-base-content/60">
+            {%- for hour in range(0, 24, 3) %}
+            <span>{{ t("chrono.preview_hour", hour="%02d"|format(hour)) }}</span>
+            {%- endfor %}
+          </div>
+          <div class="chrono-ticks"></div>
+        </div>
+      </div>
+      {%- for key, label in view.day_choices %}
+      <div class="grid grid-cols-[3rem_1fr] items-center gap-2" data-preview-day="{{ key }}">
+        <span class="text-sm font-medium">{{ label }}</span>
+        <div class="chrono-bar relative h-4 overflow-hidden rounded bg-base-200" role="img" data-preview-bar></div>
+      </div>
+      {%- endfor %}
+      <p class="text-xs text-base-content/60" data-preview-empty hidden>{{ t("chrono.preview_empty") }}</p>
+    </div>
+  </div>
+</div>

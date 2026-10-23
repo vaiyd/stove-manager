@@ -1,0 +1,33 @@
+{#- Maintenance card (variable: maintenance): read only counters and the last alarms. -#}
+<section id="settings-maintenance" class="card bg-base-100 shadow-sm">
+  <div class="card-body gap-3">
+    <h2 class="card-title text-base">{{ t("settings.maintenance.title") }}</h2>
+    {%- if maintenance.state == "absent" %}
+    <p class="text-sm opacity-70">{{ t("common.not_available") }}</p>
+    {%- elif maintenance.state == "error" %}
+    <p class="text-sm text-warning">{{ t("common.unavailable") }}</p>
+    {%- else %}
+    <dl class="grid grid-cols-3 gap-2 text-center">
+      <div><dt class="text-xs opacity-70">{{ t("settings.maintenance.total") }}</dt><dd class="text-lg font-bold">{{ maintenance.total_text }}</dd></div>
+      <div><dt class="text-xs opacity-70">{{ t("settings.maintenance.partial") }}</dt><dd class="text-lg font-bold">{{ maintenance.partial_text }}</dd></div>
+      <div><dt class="text-xs opacity-70">{{ t("settings.maintenance.ignitions") }}</dt><dd class="text-lg font-bold">{{ maintenance.ignitions_text }}</dd></div>
+    </dl>
+    {%- if maintenance.progress is not none %}
+    <div class="space-y-1">
+      <div class="flex justify-between text-xs opacity-70"><span>{{ t("settings.maintenance.service") }}</span><span>{{ maintenance.remaining_text }}</span></div>
+      <progress class="progress progress-warning w-full" value="{{ maintenance.progress }}" max="{{ maintenance.progress_max }}" aria-label="{{ t('settings.maintenance.service') }}"></progress>
+    </div>
+    {%- endif %}
+    <div class="space-y-1">
+      <h3 class="text-sm font-medium">{{ t("settings.maintenance.alarms") }}</h3>
+      {%- if maintenance.alarms %}
+      <ul class="list-inside list-disc text-sm">
+        {%- for alarm in maintenance.alarms %}<li>{{ alarm }}</li>{% endfor %}
+      </ul>
+      {%- else %}
+      <p class="text-sm opacity-70">{{ t("settings.maintenance.alarms_empty") }}</p>
+      {%- endif %}
+    </div>
+    {%- endif %}
+  </div>
+</section>

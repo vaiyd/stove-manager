@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{{ t("nav.history") }}{% endblock %}
+{% block main_class %}mx-auto w-full max-w-3xl space-y-4 p-4 pb-28 lg:pb-6{% endblock %}
+{% block content %}
+  <div role="tablist" class="tabs tabs-box w-full">
+    {%- for item in ranges %}
+    <a role="tab" class="tab flex-1{{ ' tab-active' if item.key == spec.key }}" href="{{ url_for('history.index', range=item.key) }}"{% if item.key == spec.key %} aria-selected="true"{% endif %}>{{ t(item.label) }}</a>
+    {%- endfor %}
+  </div>
+  {#- Live region of the first page: the wrapper keeps its trigger state, so the throttle survives each swap. Older pages are static (no data-live, no trigger). -#}
+  <div id="history-live" class="space-y-4"{% if live %} data-live hx-get="{{ partial_url }}" hx-trigger="refresh-tick[detail.forced] from:body, refresh-tick[!detail.forced] from:body throttle:55s" hx-swap="innerHTML"{% endif %}>
+    {% include "partials/history_live.html" %}
+  </div>
+{% endblock %}

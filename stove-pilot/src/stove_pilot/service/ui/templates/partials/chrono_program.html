@@ -1,0 +1,53 @@
+{#- One program of a block (variables: view, b = block, p = program). Field names: <block>.<index>.<field>. -#}
+{% set base = b.kind ~ "." ~ p.index ~ "." -%}
+{% set dom = b.kind ~ "-" ~ p.index -%}
+{% set lock = "" if view.writable else " disabled" -%}
+<fieldset class="space-y-3 rounded-box border border-base-300 p-3" data-program="{{ p.index }}">
+  <legend class="px-1 text-sm font-semibold">{{ p.title }}</legend>
+  <div class="grid grid-cols-2 gap-3">
+    <div class="space-y-1">
+      <label class="text-sm" for="{{ dom }}-start">{{ t("chrono.start") }}</label>
+      <input type="time" id="{{ dom }}-start" name="{{ base }}start" value="{{ p.start }}" step="600" max="23:50" class="input w-full" data-field="start"{{ " disabled" if (p.no_start or not view.writable) }}>
+      <label class="flex cursor-pointer items-center gap-2 text-sm">
+        <input type="checkbox" class="checkbox checkbox-sm" data-field="no_start"{{ " checked" if p.no_start }}{{ lock }}>
+        <span>{{ t("chrono.no_start") }}</span>
+      </label>
+    </div>
+    <div class="space-y-1">
+      <label class="text-sm" for="{{ dom }}-stop">{{ t("chrono.stop") }}</label>
+      <input type="time" id="{{ dom }}-stop" name="{{ base }}stop" value="{{ p.stop }}" step="600" max="23:50" class="input w-full" data-field="stop"{{ " disabled" if (p.no_stop or not view.writable) }}>
+      <label class="flex cursor-pointer items-center gap-2 text-sm">
+        <input type="checkbox" class="checkbox checkbox-sm" data-field="no_stop"{{ " checked" if p.no_stop }}{{ lock }}>
+        <span>{{ t("chrono.no_stop") }}</span>
+      </label>
+    </div>
+  </div>
+  {%- if p.chips %}
+  <div class="flex flex-wrap gap-1" role="group" aria-label="{{ t('chrono.days') }}">
+    {%- for chip in p.chips %}
+    <input type="checkbox" name="{{ base }}day" value="{{ chip.key }}" aria-label="{{ chip.label }}" class="btn btn-sm btn-outline{{ ' btn-active' if chip.selected }}" data-field="day"{{ " checked" if chip.selected }}{{ lock }}>
+    {%- endfor %}
+  </div>
+  {%- endif %}
+  <div class="grid grid-cols-2 gap-3">
+    <label class="space-y-1 text-sm">
+      <span>{{ t("chrono.setpoint") }}</span>
+      <select name="{{ base }}setpoint" class="select w-full" data-field="setpoint"{{ lock }}>
+        {%- for value in p.setpoint_options %}
+        <option value="{{ value }}"{{ " selected" if value == p.setpoint }}>{{ value }}</option>
+        {%- endfor %}
+      </select>
+    </label>
+    <label class="space-y-1 text-sm">
+      <span>{{ t("chrono.power") }}</span>
+      <select name="{{ base }}power" class="select w-full" data-field="power"{{ lock }}>
+        {%- for value in p.power_options %}
+        <option value="{{ value }}"{{ " selected" if value == p.power }}>{{ t("glance.power", level=value) }}</option>
+        {%- endfor %}
+      </select>
+    </label>
+  </div>
+  <div class="flex justify-end">
+    <button type="button" class="btn btn-ghost btn-sm" data-action="clear"{{ lock }}>{{ t("chrono.clear") }}</button>
+  </div>
+</fieldset>

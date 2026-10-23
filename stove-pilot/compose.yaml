@@ -1,0 +1,53 @@
+# Stove Pilot stack. Secrets and settings come from ./.env (copy .env.example, never commit it).
+# Keep STOVE_PILOT_GATEWAY=navel in .env for the real stove (the example file defaults to simulator).
+#
+# Network exposure:
+# - api: no published port, reachable only by the ui service on the compose network.
+# - ui: published on 8711. There is NO login, so 8711 must stay on the LAN or VPN only.
+#   Never port-forward it. To restrict it to one interface, change the mapping to
+#   "192.168.1.10:8711:8711".
+
+x-stove-pilot: &stove-pilot
+  image: stove-pilot:latest
+  build: .
+  env_file: .env
+  restart: unless-stopped
+
+services:
+  api:
+    <<: *stove-pilot
+    command: ["stove-pilot-api"]
+    environment:
+      STOVE_PILOT_API_HOST: "0.0.0.0"
+      STOVE_PILOT_API_PORT: "8710"
+      STOVE_PILOT_DB_PATH: /data/stove-pilot.sqlite
+    volumes:
+      - stove-data:/data
+    expose:
+      - "8710"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8710/api/v1/health', timeout=4)"
+      interval: 30s
+      timeout: 6s
+      retries: 3
+      start_period: 20s
+
+  ui:
+    <<: *stove-pilot
+    command: ["stove-pilot-ui"]
+    environment:
+      STOVE_PILOT_UI_HOST: "0.0.0.0"
+      STOVE_PILOT_UI_PORT: "8711"
+      STOVE_PILOT_UI_API_BASE_URL: http://api:8710
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "8711:8711"
+
+volumes:
+  stove-data:

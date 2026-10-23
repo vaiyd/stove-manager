@@ -1,0 +1,34 @@
+# Stove Pilot web UI (Linux without Docker). See README, section "Deployment: systemd".
+# The UI has no login: port 8711 must stay on the LAN or VPN only. Never port-forward it.
+# Placeholders to adapt: User/Group, /opt/stove-pilot/venv, /etc/stove-pilot/stove-pilot.env.
+# The UI keeps no database and writes nothing, so the filesystem is read-only for it.
+[Unit]
+Description=Stove Pilot UI
+Wants=network-online.target stove-pilot-api.service
+After=network-online.target stove-pilot-api.service
+
+[Service]
+Type=simple
+User=stove-pilot
+Group=stove-pilot
+EnvironmentFile=/etc/stove-pilot/stove-pilot.env
+WorkingDirectory=/
+ExecStart=/opt/stove-pilot/venv/bin/stove-pilot-ui
+Restart=always
+RestartSec=5
+TimeoutStopSec=20
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

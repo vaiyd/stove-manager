@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ t("nav.settings") }}{% endblock %}
+{% block head_extra %}
+  <script src="{{ url_for('static', filename='js/settings.js') }}" defer></script>
+{% endblock %}
+{% block content %}
+  {% include "partials/settings_energy.html" %}
+  {% include "partials/settings_safety.html" %}
+  {% include "partials/settings_display.html" %}
+  {{ clock_html | safe }}
+  {% include "partials/settings_maintenance.html" %}
+{% endblock %}

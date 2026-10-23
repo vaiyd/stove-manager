@@ -1,0 +1,7 @@
+.env
+data/
+tools/tailwindcss*
+tools/daisyui*.mjs
+__pycache__/
+.venv/
+*.egg-info/

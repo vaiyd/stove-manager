@@ -1,0 +1,77 @@
+{% from "macros/icons.html" import icon -%}
+<!doctype html>
+<html lang="fr"{% block html_attrs %}{% endblock %}>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% block title %}{{ t("app.title") }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  {% block pwa %}
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#9a5b2c">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon-32.png') }}">
+  <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+  {% endblock %}
+  {% block theme_script %}<script src="{{ url_for('static', filename='js/theme.js') }}"></script>{% endblock %}
+  <script src="{{ url_for('static', filename='js/htmx.min.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/refresh.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/chart-hover.js') }}" defer></script>
+  {% block sw_register %}
+  {% if dev_mode %}
+  <script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function (registrations) {
+      registrations.forEach(function (registration) { registration.unregister(); });
+    });
+  }
+  </script>
+  {% else %}
+  <script src="{{ url_for('static', filename='js/sw-register.js') }}" defer></script>
+  {% endif %}
+  {% endblock %}
+  {% block head_extra %}{% endblock %}
+</head>
+<body class="{% block body_class %}min-h-screen bg-base-200{% endblock %}" data-poll-s="{{ poll_interval_s }}" data-ago-s="{{ t('common.updated_ago_s', n='{n}') }}" data-ago-min="{{ t('common.updated_ago_min', n='{n}') }}" {% block body_attrs %}data-refresh-default="{{ refresh_default }}" hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'{% endblock %}>
+{% block nav %}
+  {% set items = nav_items() %}
+  <header class="navbar sticky top-0 z-30 mt-2 h-16 bg-base-100 shadow-sm">
+    <div class="navbar-start">
+      <a href="/" class="inline-flex items-center px-2" aria-label="{{ t('app.title') }}">
+        <img src="{{ url_for('static', filename='images/calcifer-144.png') }}" alt="{{ t('app.title') }}" width="80" height="80" class="mt-1 h-[80px] w-[80px]">
+      </a>
+    </div>
+    <nav class="navbar-center hidden lg:flex" aria-label="{{ t('app.title') }}">
+      <ul class="menu menu-horizontal gap-1">
+        {% for item in items %}
+        <li><a href="{{ item.url }}" class="size-11 place-content-center! items-center p-0{{ ' menu-active' if item.active }}" aria-label="{{ item.label }}" title="{{ item.label }}"{% if item.active %} aria-current="page"{% endif %}>{{ icon(item.icon, "size-6") }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+    <div class="navbar-end gap-1">
+      <button type="button" class="btn btn-ghost btn-circle" data-theme-toggle>
+        <span role="img" class="[[data-mode=dark]_&]:hidden" title="{{ t('theme.to_dark') }}" aria-label="{{ t('theme.to_dark') }}">{{ icon("moon") }}</span>
+        <span role="img" class="hidden [[data-mode=dark]_&]:inline" title="{{ t('theme.to_light') }}" aria-label="{{ t('theme.to_light') }}">{{ icon("sun") }}</span>
+      </button>
+      {% include "partials/refresh_selector.html" %}
+    </div>
+  </header>
+{% endblock %}
+  <main class="{% block main_class %}mx-auto w-full max-w-2xl space-y-4 p-4 pb-28 lg:pb-6{% endblock %}">
+    {% block content %}{% endblock %}
+  </main>
+{% block dock %}
+  <nav class="dock lg:hidden z-30" aria-label="{{ t('app.title') }}">
+    {% for item in nav_items() %}
+    <a href="{{ item.url }}"{% if item.active %} class="dock-active" aria-current="page"{% endif %} aria-label="{{ item.label }}" title="{{ item.label }}">
+      {{ icon(item.icon, "size-6") }}
+    </a>
+    {% endfor %}
+  </nav>
+{% endblock %}
+{% block toasts %}
+  <div id="toasts" class="toast toast-top toast-center z-50" aria-live="polite"></div>
+{% endblock %}
+</body>
+</html>

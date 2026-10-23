@@ -1,0 +1,80 @@
+{#- Controls card: steppers, start/stop and the suspension button. Live region (depends on the state). -#}
+{% macro stepper(label, name, url, value, step, enabled) -%}
+<div class="flex items-center justify-between gap-3">
+  <span class="font-medium">{{ label }}</span>
+  <form class="join" hx-post="{{ url }}" hx-trigger="change delay:1500ms" hx-target="#controls" hx-swap="outerHTML">
+    <button type="button" class="btn join-item" aria-label="{{ t('controls.decrease') }}"{{ '' if enabled else ' disabled' }} onclick="const i=this.form.elements.{{ name }};i.stepDown();this.form.dataset.dirty=1;i.dispatchEvent(new Event('change',{bubbles:true}))">-</button>
+    <input type="number" name="{{ name }}" value="{{ value }}" step="{{ step }}" inputmode="decimal" class="input join-item w-20 text-center" aria-label="{{ label }}"{{ '' if enabled else ' disabled' }}>
+    <button type="button" class="btn join-item" aria-label="{{ t('controls.increase') }}"{{ '' if enabled else ' disabled' }} onclick="const i=this.form.elements.{{ name }};i.stepUp();this.form.dataset.dirty=1;i.dispatchEvent(new Event('change',{bubbles:true}))">+</button>
+  </form>
+</div>
+{%- endmacro %}
+<section id="controls" class="space-y-3" data-live data-stale="{{ 'true' if controls_stale else 'false' }}" hx-get="/partials/controls" hx-trigger="refresh-tick from:body" hx-swap="outerHTML">
+{%- if controls is none %}
+  <div role="alert" class="alert alert-warning"><span>{{ t("common.unavailable") }}</span></div>
+{%- else %}
+  {%- set s = controls.status %}
+  {%- set caps = s.capabilities %}
+  <div class="card bg-base-100 shadow-sm">
+    <div class="card-body gap-3">
+      {{ stepper(t("controls.setpoint"), "value_c", "/actions/setpoint", s.setpoint_text, 1, caps.setpoint and not controls.vacation_active) }}
+      {%- if not caps.setpoint %}
+      <p class="text-xs text-warning">{{ t("common.unverified") }}</p>
+      {%- elif controls.vacation_active %}
+      <p class="text-xs opacity-70">{{ t("vacation.locked_hint") }}</p>
+      {%- endif %}
+      {{ stepper(t("controls.power"), "level", "/actions/power", s.power_level, 1, caps.power) }}
+      {%- if not caps.power %}
+      <p class="text-xs text-warning">{{ t("common.unverified") }}</p>
+      {%- endif %}
+    </div>
+  </div>
+
+  {%- if controls.show_stop %}
+  <button type="button" class="btn btn-error btn-lg btn-block"{{ '' if caps.stop else ' disabled' }} onclick="document.getElementById('stop-modal').showModal()">{{ t("controls.stop") }}</button>
+  {%- if not caps.stop %}
+  <p class="text-center text-xs text-warning">{{ t("common.unverified") }}</p>
+  {%- endif %}
+  {%- else %}
+  <button type="button" class="btn btn-primary btn-lg btn-block" hx-post="/actions/start" hx-target="#controls" hx-swap="outerHTML" hx-disabled-elt="this"{{ '' if (caps.start and controls.start_available) else ' disabled' }}>{{ t("controls.start") }}</button>
+  {%- if not caps.start %}
+  <p class="text-center text-xs text-warning">{{ t("common.unverified") }}</p>
+  {%- elif not controls.start_available %}
+  <p class="text-center text-xs opacity-70">{{ t("controls.state_unavailable") }}</p>
+  {%- endif %}
+  {%- endif %}
+
+  {%- if controls.suspension is not none %}
+    {%- if controls.suspension.vacation %}
+  <button type="button" class="btn btn-secondary btn-block" hx-post="/actions/resume" hx-vals='{"kind": "vacation"}' hx-target="#controls" hx-swap="outerHTML" hx-disabled-elt="this">{{ t("vacation.end") }}</button>
+    {%- elif controls.suspension.suspended %}
+  <button type="button" class="btn btn-secondary btn-block" hx-post="/actions/resume" hx-target="#controls" hx-swap="outerHTML" hx-disabled-elt="this">{{ t("suspension.resume") }}</button>
+    {%- else %}
+  <button type="button" class="btn btn-outline btn-block" onclick="document.getElementById('suspend-modal').showModal()">{{ t("suspension.suspend") }}</button>
+  <button type="button" class="btn btn-outline btn-block" onclick="document.getElementById('vacation-modal').showModal()">{{ t("vacation.button") }}</button>
+    {%- endif %}
+  {%- endif %}
+
+  {%- if controls.show_stop %}
+  <dialog id="stop-modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box">
+      <h3 class="text-lg font-bold">{{ t("controls.stop_title") }}</h3>
+      <p class="py-3">{{ t("controls.stop_text") }}</p>
+      {%- if s.is_ignition %}
+      <div role="alert" class="alert alert-warning"><span>{{ t("controls.stop_ignition_warning") }}</span></div>
+      {%- endif %}
+      <div class="modal-action">
+        <form method="dialog"><button class="btn">{{ t("common.cancel") }}</button></form>
+        <button type="button" class="btn btn-error" hx-post="/actions/stop"{% if s.is_ignition %} hx-vals='{"confirm_ignition_stop": "true"}'{% endif %} hx-target="#controls" hx-swap="outerHTML" hx-disabled-elt="this"{{ '' if caps.stop else ' disabled' }}>{{ t("controls.stop_confirm") }}</button>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop"><button aria-label="{{ t('common.close') }}">{{ t("common.close") }}</button></form>
+  </dialog>
+  {%- endif %}
+
+  {%- if controls.suspension is not none and not controls.suspension.suspended %}
+  {%- include "partials/suspend_modal.html" %}
+  {%- include "partials/vacation_modal.html" %}
+  {%- endif %}
+{%- endif %}
+</section>

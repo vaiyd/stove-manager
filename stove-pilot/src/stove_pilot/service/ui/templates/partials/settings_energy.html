@@ -1,0 +1,47 @@
+{#- Energy saving card (variable: energy). Not a live region: only its own save swaps it. -#}
+<section id="settings-energy" class="card bg-base-100 shadow-sm">
+  <div class="card-body gap-3">
+    <h2 class="card-title text-base">{{ t("settings.energy.title") }}</h2>
+    {%- if energy.state == "absent" %}
+    <p class="text-sm opacity-70">{{ t("common.not_available") }}</p>
+    {%- elif energy.state == "error" %}
+    <p class="text-sm text-warning">{{ t("common.unavailable") }}</p>
+    {%- else %}
+    <form class="space-y-3" hx-post="/actions/settings/energy-saving" hx-target="#settings-energy" hx-swap="outerHTML" hx-disabled-elt="find button[type=submit]" data-energy-form data-text-on="{{ t('settings.energy.sentence', stop='{stop}', start='{start}') }}" data-text-off="{{ t('settings.energy.sentence_off') }}">
+      <fieldset class="space-y-3"{{ '' if (energy.writable and not energy.locked) else ' disabled' }}>
+        <label class="flex items-center justify-between gap-3">
+          <span class="font-medium">{{ t("settings.energy.toggle") }}</span>
+          <input type="checkbox" name="enabled" class="toggle toggle-primary"{{ ' checked' if energy.enabled }}>
+        </label>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="fieldset">
+            <label class="label" for="energy-stop">{{ t("settings.energy.stop_label") }}</label>
+            <select id="energy-stop" name="stop" class="select w-full">
+              <option value="off"{{ ' selected' if energy.stop is none }}>{{ t("settings.energy.off_option") }}</option>
+              {%- for offset in energy.offsets %}
+              <option value="{{ offset }}"{{ ' selected' if energy.stop == offset }}>+{{ offset }} C</option>
+              {%- endfor %}
+            </select>
+          </div>
+          <div class="fieldset">
+            <label class="label" for="energy-start">{{ t("settings.energy.start_label") }}</label>
+            <select id="energy-start" name="start" class="select w-full">
+              {%- for offset in energy.offsets %}
+              <option value="{{ offset }}"{{ ' selected' if energy.start == offset }}>-{{ offset }} C</option>
+              {%- endfor %}
+            </select>
+          </div>
+        </div>
+        <p class="text-sm font-medium" data-energy-sentence aria-live="polite">{{ energy.sentence }}</p>
+        <p class="text-xs opacity-70">{{ t("settings.energy.hint") }}</p>
+        <button type="submit" class="btn btn-primary btn-sm">{{ t("settings.save") }}</button>
+      </fieldset>
+      {%- if not energy.writable %}
+      <p class="text-xs text-warning">{{ t("common.unverified") }}</p>
+      {%- elif energy.locked %}
+      <p class="text-xs opacity-70">{{ t("vacation.locked_hint") }}</p>
+      {%- endif %}
+    </form>
+    {%- endif %}
+  </div>
+</section>

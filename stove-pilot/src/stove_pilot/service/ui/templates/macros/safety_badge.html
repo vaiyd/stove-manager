@@ -1,0 +1,10 @@
+{#- Safety mark. The glance caller places it in the readings row, after the stove clock. -#}
+{% from "macros/icons.html" import icon -%}
+{% macro safety_mark(safety) -%}
+<span class="kbd kbd-sm inline-flex items-center gap-1 font-mono
+{%- if safety.tone == 'info' %} text-info
+{%- elif safety.tone == 'error' %} text-error
+{%- endif -%}
+{%- if safety.muted %} opacity-50{% endif -%}
+" role="group" title="{{ safety.label }}" aria-label="{{ safety.label }}">{{ icon("shield", "size-4") }}<span aria-hidden="true">{{ safety.threshold_text }} C</span></span>
+{%- endmacro %}
